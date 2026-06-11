@@ -730,7 +730,52 @@ function prevQ() {
   if (state.cur > 0) { state.cur--; render(state.cur); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyGTRs0xR2fkC5CMV2qjvfXarqrwVm4Kpi_V2WfaZjNs2TKwx6T1GkxB8Ss3kPdfuj7/exec';
+
 function submitSurvey() {
+  const q = questions[state.cur];
+  if (q.required) {
+    const ans = state.answers[q.id];
+    const isEmpty = !ans || (Array.isArray(ans) && ans.length === 0) || ans === '';
+    if (isEmpty) {
+      const card = document.getElementById('qcard-' + q.id);
+      if (card) {
+        card.style.borderColor = '#F4663A';
+        card.style.background = '#FEF0EB';
+        setTimeout(() => { card.style.borderColor = ''; card.style.background = ''; }, 1400);
+      }
+      return;
+    }
+  }
+
+  const nextBtn = document.getElementById('btn-next');
+  if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Submitting...'; }
+
+  const payload = {
+    q1:  state.answers['q1']  || '',
+    q2:  state.answers['q2']  || [],
+    q3:  state.answers['q3']  || '',
+    q4:  state.answers['q4']  || [],
+    q5:  state.answers['q5']  || '',
+    q6:  state.answers['q6']  || [],
+    q7:  state.answers['q7']  || '',
+    q8:  state.answers['q8']  || '',
+    q9:  state.answers['q9']  || '',
+    q10: state.answers['q10'] || '',
+    userAgent: navigator.userAgent
+  };
+
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => showThankYou())
+  .catch(() => showThankYou());
+}
+
+function showThankYou() {
   document.getElementById('survey-body').style.display = 'none';
   document.getElementById('progress-wrap').style.display = 'none';
   document.getElementById('submit-screen').style.display = 'block';
